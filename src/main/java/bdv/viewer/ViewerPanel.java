@@ -28,8 +28,6 @@
  */
 package bdv.viewer;
 
-import bdv.TransformEventHandler;
-import bdv.TransformState;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -53,12 +51,15 @@ import javax.swing.DefaultBoundedRangeModel;
 import javax.swing.JSlider;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 
-import net.imglib2.Interval;
-import bdv.viewer.render.awt.BufferedImageOverlayRenderer;
 import org.jdom2.Element;
+import org.scijava.listeners.Listeners;
 
+import bdv.TransformEventHandler;
+import bdv.TransformState;
 import bdv.cache.CacheControl;
+import bdv.ui.UIUtils;
 import bdv.util.Prefs;
 import bdv.viewer.animate.AbstractTransformAnimator;
 import bdv.viewer.animate.MessageOverlayAnimator;
@@ -69,15 +70,16 @@ import bdv.viewer.overlay.MultiBoxOverlayRenderer;
 import bdv.viewer.overlay.ScaleBarOverlayRenderer;
 import bdv.viewer.overlay.SourceInfoOverlayRenderer;
 import bdv.viewer.render.MultiResolutionRenderer;
+import bdv.viewer.render.PainterThread;
+import bdv.viewer.render.awt.BufferedImageOverlayRenderer;
 import bdv.viewer.state.SourceGroup;
 import bdv.viewer.state.ViewerState;
 import bdv.viewer.state.XmlIoViewerState;
+import net.imglib2.Interval;
 import net.imglib2.RealLocalizable;
 import net.imglib2.RealPoint;
 import net.imglib2.RealPositionable;
 import net.imglib2.realtransform.AffineTransform3D;
-import bdv.viewer.render.PainterThread;
-import org.scijava.listeners.Listeners;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 
 /**
@@ -199,6 +201,10 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 	protected final MessageOverlayAnimator msgOverlay;
 
 	protected final ViewerOptions.Values options;
+
+	protected final double uiScale = UIUtils.getUIScaleFactor();
+
+	protected final int fontSize = UIManager.getFont( "Panel.font" ).getSize();
 
 	public ViewerPanel( final List< SourceAndConverter< ? > > sources, final int numTimePoints, final CacheControl cacheControl )
 	{
@@ -492,9 +498,9 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 			getGlobalMouseCoordinates( gPos );
 			final String mousePosGlobalString = String.format( "(%6.1f,%6.1f,%6.1f)", gPos.getDoublePosition( 0 ), gPos.getDoublePosition( 1 ), gPos.getDoublePosition( 2 ) );
 
-			g.setFont( new Font( "Monospaced", Font.PLAIN, 12 ) );
+			g.setFont( new Font( "Monospaced", Font.PLAIN, fontSize ) );
 			g.setColor( Color.white );
-			g.drawString( mousePosGlobalString, ( int ) g.getClipBounds().getWidth() - 170, 25 );
+			g.drawString( mousePosGlobalString, ( int )( g.getClipBounds().getWidth() - uiScale * 170 ), ( int )( uiScale * 25 ) );
 		}
 
 		if ( Prefs.showScaleBar() )
