@@ -34,6 +34,7 @@ import bdv.viewer.ViewerState;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
@@ -51,8 +52,6 @@ public class ManualTransformationEditor implements TransformListener< AffineTran
 
 	private final InputActionBindings bindings;
 
-	private final ViewerPanel viewer;
-
 	private final AffineTransform3D frozenTransform;
 
 	private final AffineTransform3D liveTransform;
@@ -67,9 +66,37 @@ public class ManualTransformationEditor implements TransformListener< AffineTran
 
 	private final Listeners.List< ManualTransformActiveListener > manualTransformActiveListeners;
 
+	private final Listeners< TransformListener< AffineTransform3D > > viewerTransformListeners;
+
+	private final ViewerState viewerState;
+
+	private final Consumer< String > viewerMessageDisplay;
+
 	public ManualTransformationEditor( final ViewerPanel viewer, final InputActionBindings inputActionBindings )
 	{
-		this.viewer = viewer;
+		this( viewer.transformListeners(), viewer.state(), viewer::showMessage, inputActionBindings );
+	}
+
+	/**
+	 * @param viewerTransformListeners
+	 * 		the editor will register here for listening to transform changes while active
+	 * @param viewerState
+	 * 		the state which is manipulated by the editor
+	 * @param viewerMessageDisplay
+	 * 		messages will be displayed here
+	 * @param inputActionBindings
+	 * 		the editors actionMap will be registered here while active
+	 */
+	public ManualTransformationEditor(
+			final Listeners< TransformListener< AffineTransform3D > > viewerTransformListeners,
+			final ViewerState viewerState,
+			final Consumer< String > viewerMessageDisplay,
+			final InputActionBindings inputActionBindings )
+	{
+		this.viewerTransformListeners = viewerTransformListeners;
+		this.viewerState = viewerState;
+		this.viewerMessageDisplay = viewerMessageDisplay;
+
 		bindings = inputActionBindings;
 		frozenTransform = new AffineTransform3D();
 		liveTransform = new AffineTransform3D();
@@ -97,8 +124,8 @@ public class ManualTransformationEditor implements TransformListener< AffineTran
 			final AffineTransform3D identity = new AffineTransform3D();
 			for ( final TransformedSource< ? > source : sourcesToModify )
 				source.setIncrementalTransform( identity );
-			viewer.state().setViewerTransform( frozenTransform );
-			viewer.showMessage( "aborted manual transform" );
+			viewerState.setViewerTransform( frozenTransform );
+			viewerMessageDisplay.accept( "aborted manual transform" );
 			active = false;
 			manualTransformActiveListeners.list.forEach( l -> l.manualTransformActiveChanged( active ) );
 		}
@@ -118,8 +145,8 @@ public class ManualTransformationEditor implements TransformListener< AffineTran
 			{
 				source.setIncrementalTransform( identity );
 			}
-			viewer.state().setViewerTransform( frozenTransform );
-			viewer.showMessage( "reset manual transform" );
+			viewerState.setViewerTransform( frozenTransform );
+			viewerMessageDisplay.accept( "reset manual transform" );
 		}
 	}
 
@@ -131,7 +158,7 @@ public class ManualTransformationEditor implements TransformListener< AffineTran
 		if ( a )
 		{
 			// Enter manual edit mode
-			final ViewerState state = viewer.state().snapshot();
+			final ViewerState state = this.viewerState.snapshot();
 			final List< SourceAndConverter< ? > > currentSources = new ArrayList<>();
 			switch ( state.getDisplayMode() )
 			{
@@ -142,7 +169,7 @@ public class ManualTransformationEditor implements TransformListener< AffineTran
 				currentSources.addAll( state.getSourcesInGroup( state.getCurrentGroup() ) );
 				break;
 			default:
-				viewer.showMessage( "Can only do manual transformation when in FUSED mode." );
+				viewerMessageDisplay.accept( "Can only do manual transformation when in FUSED mode." );
 				return;
 			}
 			state.getViewerTransform( frozenTransform );
@@ -159,15 +186,15 @@ public class ManualTransformationEditor implements TransformListener< AffineTran
 				}
 			}
 			active = true;
-			viewer.addTransformListener( this );
+			viewerTransformListeners.add( this );
 			bindings.addInputMap( "manual transform", inputMap );
-			viewer.showMessage( "starting manual transform" );
+			viewerMessageDisplay.accept( "starting manual transform" );
 		}
 		else
 		{
 			// Exit manual edit mode.
 			active = false;
-			viewer.removeTransformListener( this );
+			viewerTransformListeners.remove( this );
 			bindings.removeInputMap( "manual transform" );
 			final AffineTransform3D tmp = new AffineTransform3D();
 			for ( final TransformedSource< ? > source : sourcesToModify )
@@ -181,8 +208,8 @@ public class ManualTransformationEditor implements TransformListener< AffineTran
 			tmp.identity();
 			for ( final TransformedSource< ? > source : sourcesToFix )
 				source.setIncrementalTransform( tmp );
-			viewer.state().setViewerTransform( frozenTransform );
-			viewer.showMessage( "fixed manual transform" );
+			viewerState.setViewerTransform( frozenTransform );
+			viewerMessageDisplay.accept( "fixed manual transform" );
 		}
 		manualTransformActiveListeners.list.forEach( l -> l.manualTransformActiveChanged( active ) );
 	}
@@ -195,7 +222,10 @@ public class ManualTransformationEditor implements TransformListener< AffineTran
 	@Override
 	public void transformChanged( final AffineTransform3D transform )
 	{
-		if ( !active ) { return; }
+		if ( !active )
+		{
+			return;
+		}
 
 		liveTransform.set( transform );
 		liveTransform.preConcatenate( frozenTransform.inverse() );
