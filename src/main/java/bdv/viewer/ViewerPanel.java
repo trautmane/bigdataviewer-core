@@ -179,7 +179,7 @@ public class ViewerPanel extends JPanel implements OverlayRenderer, PainterThrea
 	 * viewer-transform. This is done <em>before</em> calling
 	 * {@link #requestRepaint()} so listeners have the chance to interfere.
 	 */
-	protected final CopyOnWriteArrayList< TransformListener< AffineTransform3D > > transformListeners;
+	private final Listeners.List< TransformListener< AffineTransform3D > > transformListeners;
 
 	/**
 	 * These listeners will be notified about changes to the current timepoint
@@ -287,7 +287,7 @@ public class ViewerPanel extends JPanel implements OverlayRenderer, PainterThrea
 
 		visibilityAndGrouping = new VisibilityAndGrouping( state );
 
-		transformListeners = new CopyOnWriteArrayList<>();
+		transformListeners = new Listeners.SynchronizedList<>( l -> l.transformChanged( state().getViewerTransform() ) );
 		timePointListeners = new CopyOnWriteArrayList<>();
 		interpolationModeListeners = new CopyOnWriteArrayList<>();
 
@@ -619,8 +619,7 @@ public class ViewerPanel extends JPanel implements OverlayRenderer, PainterThrea
 		}
 		case VIEWER_TRANSFORM_CHANGED:
 			final AffineTransform3D transform = state().getViewerTransform();
-			for ( final TransformListener< AffineTransform3D > l : transformListeners )
-				l.transformChanged( transform );
+			transformListeners.list.forEach( l -> l.transformChanged( transform ) );
 			requestRepaint();
 		}
 	}
@@ -916,51 +915,42 @@ public class ViewerPanel extends JPanel implements OverlayRenderer, PainterThrea
 	}
 
 	/**
-	 * Add a {@link TransformListener} to notify about viewer transformation
+	 * Add/remove {@code TransformListener}s to notify about viewer transformation
 	 * changes. Listeners will be notified <em>before</em> calling
 	 * {@link #requestRepaint()} so they have the chance to interfere.
-	 *
-	 * @param listener
-	 *            the transform listener to add.
 	 */
+	public Listeners< TransformListener< AffineTransform3D > > transformListeners()
+	{
+		return transformListeners;
+	}
+
+	/**
+	 * @deprecated Use {@code transformListeners().add( listener )}.
+	 */
+	@Deprecated
 	public void addTransformListener( final TransformListener< AffineTransform3D > listener )
 	{
-		addTransformListener( listener, Integer.MAX_VALUE );
+		transformListeners().add( listener );
 	}
 
 	/**
-	 * Add a {@link TransformListener} to notify about viewer transformation
-	 * changes. Listeners will be notified <em>before</em> calling
-	 * {@link #requestRepaint()} so they have the chance to interfere.
-	 *
-	 * @param listener
-	 *            the transform listener to add.
-	 * @param index
-	 *            position in the list of listeners at which to insert this one.
+	 * @deprecated Use {@code transformListeners().add( index, listener )}.
 	 */
+	@Deprecated
 	public void addTransformListener( final TransformListener< AffineTransform3D > listener, final int index )
 	{
-		synchronized ( transformListeners )
-		{
-			final int s = transformListeners.size();
-			transformListeners.add( index < 0 ? 0 : index > s ? s : index, listener );
-			listener.transformChanged( state().getViewerTransform() );
-		}
+		transformListeners().add( index, listener );
 	}
 
 	/**
-	 * Remove a {@link TransformListener}.
-	 *
-	 * @param listener
-	 *            the transform listener to remove.
+	 * @deprecated Use {@code transformListeners().remove( listener )} or
+	 * {@code renderTransformListeners().remove( listener )} (whichever the listener was added to).
 	 */
+	@Deprecated
 	public void removeTransformListener( final TransformListener< AffineTransform3D > listener )
 	{
-		synchronized ( transformListeners )
-		{
-			transformListeners.remove( listener );
-		}
-		renderTarget.transformListeners().remove( listener );
+		transformListeners().remove( listener );
+		renderTransformListeners().remove( listener );
 	}
 
 	/**
