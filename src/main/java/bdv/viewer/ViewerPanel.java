@@ -52,7 +52,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import javax.swing.DefaultBoundedRangeModel;
-import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -85,6 +84,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import bdv.viewer.render.PainterThread;
 import net.imglib2.util.LinAlgHelpers;
 import org.scijava.listeners.Listeners;
+import org.scijava.ui.behaviour.io.InputTriggerConfig;
 
 /**
  * A JPanel for viewing multiple of {@link Source}s. The panel contains a
@@ -96,7 +96,7 @@ import org.scijava.listeners.Listeners;
  *
  * @author Tobias Pietzsch
  */
-public class ViewerPanel extends JPanel implements OverlayRenderer, PainterThread.Paintable, ViewerStateChangeListener, RequestRepaint
+public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer, PainterThread.Paintable, ViewerStateChangeListener, RequestRepaint
 {
 	private static final long serialVersionUID = 1L;
 
@@ -823,6 +823,7 @@ public class ViewerPanel extends JPanel implements OverlayRenderer, PainterThrea
 	 *
 	 * @return the viewer canvas.
 	 */
+	@Override
 	public InteractiveDisplayCanvas getDisplay()
 	{
 		return display;
@@ -1165,5 +1166,16 @@ public class ViewerPanel extends JPanel implements OverlayRenderer, PainterThrea
 	public boolean requestFocusInWindow()
 	{
 		return display.requestFocusInWindow();
+	}
+
+
+
+
+	// ======== AbstractViewerPanel ======
+
+	@Override
+	public InputTriggerConfig getInputTriggerConfig()
+	{
+		return options.getInputTriggerConfig();
 	}
 }

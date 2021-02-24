@@ -29,7 +29,7 @@
 package bdv.ui.splitpanel;
 
 import bdv.ui.splitpanel.SplitPaneOneTouchExpandAnimator.AnimationType;
-import bdv.viewer.ViewerPanel;
+import bdv.viewer.AbstractViewerPanel;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -44,9 +44,9 @@ class SplitPaneOneTouchExpandTrigger extends MouseAdapter
 
 	private final SplitPanel splitPanel;
 
-	private final ViewerPanel viewer;
+	private final AbstractViewerPanel viewer;
 
-	public SplitPaneOneTouchExpandTrigger( final SplitPaneOneTouchExpandAnimator animator, final SplitPanel splitPanel, final ViewerPanel viewer )
+	public SplitPaneOneTouchExpandTrigger( final SplitPaneOneTouchExpandAnimator animator, final SplitPanel splitPanel, final AbstractViewerPanel viewer )
 	{
 		this.animator = animator;
 		this.splitPanel = splitPanel;

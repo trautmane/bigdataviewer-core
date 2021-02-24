@@ -29,7 +29,7 @@
 package bdv.ui.splitpanel;
 
 import bdv.ui.CardPanel;
-import bdv.viewer.ViewerPanel;
+import bdv.viewer.AbstractViewerPanel;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -70,7 +70,7 @@ public class SplitPanel extends JSplitPane
 
 	private final SplitPaneOneTouchExpandAnimator oneTouchExpandAnimator;
 
-	public SplitPanel( final ViewerPanel viewerPanel, final CardPanel cardPanel )
+	public SplitPanel( final AbstractViewerPanel viewerPanel, final CardPanel cardPanel )
 	{
 		super( JSplitPane.HORIZONTAL_SPLIT );
 
@@ -85,7 +85,7 @@ public class SplitPanel extends JSplitPane
 		final InputMap inputMap = scrollPane.getInputMap( JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT );
 		inputMap.put( KeyStroke.getKeyStroke( "F6" ), "none" );
 
-		final InputTriggerConfig inputTriggerConfig = viewerPanel.getOptionValues().getInputTriggerConfig();
+		final InputTriggerConfig inputTriggerConfig = viewerPanel.getInputTriggerConfig();
 		final Actions actions = new Actions( inputMap, scrollPane.getActionMap(), inputTriggerConfig, "bdv" );
 		actions.runnableAction( viewerPanel::requestFocusInWindow, FOCUS_VIEWER_PANEL, "ESCAPE" );
 		actions.runnableAction( () -> {
