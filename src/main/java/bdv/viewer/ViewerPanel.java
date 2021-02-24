@@ -461,6 +461,7 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 	 * TODO
 	 * @param p
 	 */
+	@Override
 	public synchronized void getMouseCoordinates( final Positionable p )
 	{
 		assert p.numDimensions() == 2;
@@ -624,46 +625,6 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 		}
 	}
 
-	private final static double c = Math.cos( Math.PI / 4 );
-
-	/**
-	 * The planes which can be aligned with the viewer coordinate system: XY,
-	 * ZY, and XZ plane.
-	 */
-	public enum AlignPlane
-	{
-		XY( "XY", 2, new double[] { 1, 0, 0, 0 } ),
-		ZY( "ZY", 0, new double[] { c, 0, -c, 0 } ),
-		XZ( "XZ", 1, new double[] { c, c, 0, 0 } );
-
-		private final String name;
-
-		public String getName()
-		{
-			return name;
-		}
-
-		/**
-		 * rotation from the xy-plane aligned coordinate system to this plane.
-		 */
-		private final double[] qAlign;
-
-		/**
-		 * Axis index. The plane spanned by the remaining two axes will be
-		 * transformed to the same plane by the computed rotation and the
-		 * "rotation part" of the affine source transform.
-		 * @see Affine3DHelpers#extractApproximateRotationAffine(AffineTransform3D, double[], int)
-		 */
-		private final int coerceAffineDimension;
-
-		private AlignPlane( final String name, final int coerceAffineDimension, final double[] qAlign )
-		{
-			this.name = name;
-			this.coerceAffineDimension = coerceAffineDimension;
-			this.qAlign = qAlign;
-		}
-	}
-
 	/**
 	 * Align the XY, ZY, or XZ plane of the local coordinate system of the
 	 * currently active source with the viewer coordinate system.
@@ -671,6 +632,7 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 	 * @param plane
 	 *            to which plane to align.
 	 */
+	@Override
 	protected synchronized void align( final AlignPlane plane )
 	{
 		final Source< ? > source = state().getCurrentSource().getSpimSource();
@@ -700,11 +662,10 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 			centerY = getHeight() / 2.0;
 			centerX = getWidth() / 2.0;
 		}
-		currentAnimator = new RotationAnimator( transform, centerX, centerY, qTarget, 300 );
-		currentAnimator.setTime( System.currentTimeMillis() );
-		requestRepaint();
+		setTransformAnimator( new RotationAnimator( transform, centerX, centerY, qTarget, 300 ) );
 	}
 
+	@Override
 	public synchronized void setTransformAnimator( final AbstractTransformAnimator animator )
 	{
 		currentAnimator = animator;
@@ -813,6 +774,7 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 	 * adding/removing sources etc. See {@link SynchronizedViewerState} for
 	 * thread-safety considerations.
 	 */
+	@Override
 	public SynchronizedViewerState state()
 	{
 		return state.getState();
@@ -840,6 +802,7 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 	 * @param msg
 	 *            String to display. Should be just one line of text.
 	 */
+	@Override
 	public void showMessage( final String msg )
 	{
 		msgOverlay.add( msg );
@@ -892,6 +855,7 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 	 * This happens immediately after that image is painted onto the screen,
 	 * before any overlays are painted.
 	 */
+	@Override
 	public Listeners< TransformListener< AffineTransform3D > > renderTransformListeners()
 	{
 		return renderTarget.transformListeners();
@@ -920,6 +884,7 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 	 * changes. Listeners will be notified <em>before</em> calling
 	 * {@link #requestRepaint()} so they have the chance to interfere.
 	 */
+	@Override
 	public Listeners< TransformListener< AffineTransform3D > > transformListeners()
 	{
 		return transformListeners;

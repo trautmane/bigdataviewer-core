@@ -30,6 +30,7 @@ package bdv.tools.boundingbox;
 
 import static bdv.tools.boundingbox.TransformedBoxOverlay.BoxDisplayMode.FULL;
 
+import bdv.viewer.AbstractViewerPanel;
 import bdv.viewer.ConverterSetups;
 import java.util.Collections;
 import java.util.HashSet;
@@ -46,7 +47,6 @@ import org.scijava.ui.behaviour.util.Behaviours;
 import org.scijava.ui.behaviour.util.TriggerBehaviourBindings;
 
 import bdv.tools.boundingbox.TransformedBoxOverlay.BoxDisplayMode;
-import bdv.viewer.ViewerPanel;
 
 /**
  * Installs an interactive box selection tool on a BDV.
@@ -75,7 +75,7 @@ public class TransformedBoxEditor
 
 	private final TransformedBoxOverlaySource boxSource;
 
-	private final ViewerPanel viewer;
+	private final AbstractViewerPanel viewer;
 
 	private final TriggerBehaviourBindings triggerbindings;
 
@@ -93,7 +93,7 @@ public class TransformedBoxEditor
 
 	public TransformedBoxEditor(
 			final InputTriggerConfig keyconf,
-			final ViewerPanel viewer,
+			final AbstractViewerPanel viewer,
 			final ConverterSetups converterSetups,
 			final int setupId,
 			final TriggerBehaviourBindings triggerbindings,
@@ -104,7 +104,7 @@ public class TransformedBoxEditor
 
 	public TransformedBoxEditor(
 			final InputTriggerConfig keyconf,
-			final ViewerPanel viewer,
+			final AbstractViewerPanel viewer,
 			final ConverterSetups converterSetups,
 			final int setupId,
 			final TriggerBehaviourBindings triggerbindings,
@@ -170,7 +170,7 @@ public class TransformedBoxEditor
 	public void uninstall()
 	{
 		viewer.getDisplay().overlays().remove( boxOverlay );
-		viewer.removeTransformListener( boxOverlay );
+		viewer.renderTransformListeners().remove( boxOverlay );
 		viewer.getDisplay().removeHandler( boxOverlay.getCornerHighlighter() );
 
 		triggerbindings.removeInputTriggerMap( BOUNDING_BOX_MAP );

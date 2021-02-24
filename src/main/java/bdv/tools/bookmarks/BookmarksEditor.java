@@ -28,6 +28,7 @@
  */
 package bdv.tools.bookmarks;
 
+import bdv.viewer.AbstractViewerPanel;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -44,7 +45,6 @@ import javax.swing.KeyStroke;
 import org.scijava.ui.behaviour.util.InputActionBindings;
 
 import bdv.util.Affine3DHelpers;
-import bdv.viewer.ViewerPanel;
 import bdv.viewer.animate.RotationAnimator;
 import bdv.viewer.animate.SimilarityTransformAnimator;
 import net.imglib2.Point;
@@ -66,7 +66,7 @@ public class BookmarksEditor
 
 	private final ArrayList< String  > inputMapsToBlock;
 
-	private final ViewerPanel viewer;
+	private final AbstractViewerPanel viewer;
 
 	private final InputActionBindings bindings;
 
@@ -76,7 +76,7 @@ public class BookmarksEditor
 
 	private BookmarkTextOverlayAnimator animator;
 
-	public BookmarksEditor( final ViewerPanel viewer, final InputActionBindings inputActionBindings, final Bookmarks bookmarks )
+	public BookmarksEditor( final AbstractViewerPanel viewer, final InputActionBindings inputActionBindings, final Bookmarks bookmarks )
 	{
 		this.viewer = viewer;
 		bindings = inputActionBindings;

@@ -30,6 +30,7 @@ package bdv.tools.boundingbox;
 
 import static bdv.tools.boundingbox.BoxSelectionOptions.TimepointSelection.NONE;
 
+import bdv.viewer.AbstractViewerPanel;
 import bdv.viewer.ConverterSetups;
 import java.awt.BorderLayout;
 import java.awt.Font;
@@ -55,8 +56,6 @@ import net.imglib2.util.Intervals;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.TriggerBehaviourBindings;
 
-import bdv.viewer.ViewerPanel;
-
 /**
  * @author Tobias Pietzsch
  * @author Jean-Yves Tinevez
@@ -71,7 +70,7 @@ public class TransformedRealBoxSelectionDialog extends AbstractTransformedBoxSel
 
 	protected final JPanel content;
 
-	protected final ViewerPanel viewer;
+	protected final AbstractViewerPanel viewer;
 
 	protected final RealBoxSelectionPanel boxSelectionPanel;
 
@@ -80,7 +79,7 @@ public class TransformedRealBoxSelectionDialog extends AbstractTransformedBoxSel
 	protected final BoxSelectionOptions options;
 
 	public TransformedRealBoxSelectionDialog(
-			final ViewerPanel viewer,
+			final AbstractViewerPanel viewer,
 			final ConverterSetups converterSetups,
 			final int setupId,
 			final InputTriggerConfig keyConfig,

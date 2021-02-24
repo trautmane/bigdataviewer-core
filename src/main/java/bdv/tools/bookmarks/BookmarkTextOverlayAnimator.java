@@ -28,6 +28,7 @@
  */
 package bdv.tools.bookmarks;
 
+import bdv.viewer.AbstractViewerPanel;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -35,7 +36,6 @@ import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
 import java.awt.geom.Rectangle2D;
 
-import bdv.viewer.ViewerPanel;
 import bdv.viewer.animate.AbstractAnimator;
 import bdv.viewer.animate.OverlayAnimator;
 
@@ -57,14 +57,14 @@ public class BookmarkTextOverlayAnimator implements OverlayAnimator
 
 	private boolean complete = false;
 
-	private final ViewerPanel viewer;
+	private final AbstractViewerPanel viewer;
 
-	public BookmarkTextOverlayAnimator( final ViewerPanel viewer )
+	public BookmarkTextOverlayAnimator( final AbstractViewerPanel viewer )
 	{
 		this( viewer, new Font( "SansSerif", Font.BOLD, 20 ) );
 	}
 
-	public BookmarkTextOverlayAnimator( final ViewerPanel viewer, final Font font )
+	public BookmarkTextOverlayAnimator( final AbstractViewerPanel viewer, final Font font )
 	{
 		this.viewer = viewer;
 		this.font = font;

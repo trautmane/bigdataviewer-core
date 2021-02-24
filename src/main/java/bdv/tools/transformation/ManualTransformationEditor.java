@@ -29,7 +29,7 @@
 package bdv.tools.transformation;
 
 import bdv.viewer.SourceAndConverter;
-import bdv.viewer.ViewerPanel;
+import bdv.viewer.AbstractViewerPanel;
 import bdv.viewer.ViewerState;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -72,7 +72,7 @@ public class ManualTransformationEditor implements TransformListener< AffineTran
 
 	private final Consumer< String > viewerMessageDisplay;
 
-	public ManualTransformationEditor( final ViewerPanel viewer, final InputActionBindings inputActionBindings )
+	public ManualTransformationEditor( final AbstractViewerPanel viewer, final InputActionBindings inputActionBindings )
 	{
 		this( viewer.transformListeners(), viewer.state(), viewer::showMessage, inputActionBindings );
 	}

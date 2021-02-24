@@ -28,7 +28,7 @@
  */
 package bdv.tools.transformation;
 
-import bdv.viewer.SynchronizedViewerState;
+import bdv.viewer.AbstractViewerPanel;
 import bdv.viewer.ViewerState;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,14 +37,13 @@ import org.jdom2.Element;
 
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import bdv.viewer.ViewerPanel;
 import net.imglib2.realtransform.AffineTransform3D;
 
 public class ManualTransformation
 {
 	private final XmlIoTransformedSources io;
 
-	private final ViewerPanel viewer;
+	private final AbstractViewerPanel viewer;
 
 	private final List< SourceAndConverter< ? > > sources;
 
@@ -55,7 +54,7 @@ public class ManualTransformation
 		io = new XmlIoTransformedSources();
 	}
 
-	public ManualTransformation( final ViewerPanel viewer )
+	public ManualTransformation( final AbstractViewerPanel viewer )
 	{
 		this.viewer = viewer;
 		this.sources = null;

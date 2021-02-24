@@ -30,10 +30,10 @@ package bdv.tools.boundingbox;
 
 import bdv.util.Bounds;
 import bdv.util.PlaceHolderConverterSetup;
+import bdv.viewer.AbstractViewerPanel;
 import bdv.viewer.ConverterSetups;
 import bdv.viewer.DisplayMode;
 import bdv.viewer.SourceAndConverter;
-import bdv.viewer.ViewerPanel;
 import bdv.viewer.ViewerState;
 import bdv.viewer.ViewerStateChange;
 import bdv.viewer.ViewerStateChangeListener;
@@ -59,7 +59,7 @@ public class TransformedBoxOverlaySource
 
 	private final SourceAndConverter< Void > boxSourceAndConverter;
 
-	private final ViewerPanel viewer;
+	private final AbstractViewerPanel viewer;
 
 	private final ConverterSetups setups;
 
@@ -69,7 +69,7 @@ public class TransformedBoxOverlaySource
 			final String name,
 			final TransformedBoxOverlay boxOverlay,
 			final TransformedBox bbSource,
-			final ViewerPanel viewer,
+			final AbstractViewerPanel viewer,
 			final ConverterSetups converterSetups,
 			final int setupId )
 	{
