@@ -31,6 +31,7 @@ package bdv.tools.boundingbox;
 import static bdv.tools.boundingbox.TransformedBoxOverlay.BoxDisplayMode.FULL;
 
 import bdv.viewer.ConverterSetups;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -281,7 +282,7 @@ public class TransformedBoxEditor
 		final Map< InputTrigger, Set< String > > bindings = triggerbindings.getConcatenatedInputTriggerMap().getAllBindings();
 		final Set< String > behavioursToBlock = new HashSet<>();
 		for ( final InputTrigger t : moveCornerTriggers )
-			behavioursToBlock.addAll( bindings.get( t ) );
+			behavioursToBlock.addAll( bindings.getOrDefault( t, Collections.emptySet() ) );
 
 		blockMap.clear();
 		final Behaviour block = new Behaviour() {};
