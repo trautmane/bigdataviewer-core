@@ -140,6 +140,6 @@ public class TransformedBoxOverlaySource
 			final int argb = ( boxConverterSetup.getColor().get() & 0x00ffffff ) | ( alpha << 24 );
 			boxOverlay.setIntersectionFillColor( new Color( argb, true ) );
 		}
-		viewer.getDisplay().repaint();
+		viewer.getDisplayComponent().repaint();
 	}
 }

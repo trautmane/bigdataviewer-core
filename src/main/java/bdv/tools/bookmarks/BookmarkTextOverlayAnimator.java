@@ -75,7 +75,7 @@ public class BookmarkTextOverlayAnimator implements OverlayAnimator
 		text = message;
 		animator = ( fadeInDuration > 0 ) ? new AbstractAnimator( fadeInDuration ) : null;
 		fadeIn = true;
-		viewer.getDisplay().repaint();
+		viewer.getDisplayComponent().repaint();
 	}
 
 	public final void fadeOut( final String message, final long fadeOutDuration )
@@ -83,7 +83,7 @@ public class BookmarkTextOverlayAnimator implements OverlayAnimator
 		text = message;
 		animator = new AbstractAnimator( fadeOutDuration );
 		fadeIn = false;
-		viewer.getDisplay().repaint();
+		viewer.getDisplayComponent().repaint();
 	}
 
 	public final void clear()
@@ -91,7 +91,7 @@ public class BookmarkTextOverlayAnimator implements OverlayAnimator
 		text = null;
 		animator = null;
 		complete = true;
-		viewer.getDisplay().repaint();
+		viewer.getDisplayComponent().repaint();
 	}
 
 	@Override

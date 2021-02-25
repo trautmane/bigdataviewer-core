@@ -73,7 +73,7 @@ public class InitializeViewerState
 	 */
 	public static void initTransform( final AbstractViewerPanel viewer )
 	{
-		final Dimension dim = viewer.getDisplay().getSize();
+		final Dimension dim = viewer.getDisplayComponent().getSize();
 		final AffineTransform3D viewerTransform = initTransform( dim.width, dim.height, false, viewer.state().snapshot() );
 		viewer.state().setViewerTransform( viewerTransform );
 	}

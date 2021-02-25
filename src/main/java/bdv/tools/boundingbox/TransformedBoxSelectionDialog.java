@@ -135,7 +135,7 @@ public class TransformedBoxSelectionDialog extends AbstractTransformedBoxSelecti
 		} );
 		model.intervalChangedListeners().add( () -> {
 			boxSelectionPanel.updateSliders( model.box().getInterval() );
-			viewer.getDisplay().repaint();
+			viewer.getDisplayComponent().repaint();
 		} );
 	}
 

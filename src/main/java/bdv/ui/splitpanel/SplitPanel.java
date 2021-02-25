@@ -104,8 +104,8 @@ public class SplitPanel extends JSplitPane
 		viewerPanel.addOverlayAnimator( oneTouchExpandAnimator );
 
 		final SplitPaneOneTouchExpandTrigger oneTouchExpandTrigger = new SplitPaneOneTouchExpandTrigger( oneTouchExpandAnimator, this, viewerPanel );
-		viewerPanel.getDisplay().addMouseMotionListener( oneTouchExpandTrigger );
-		viewerPanel.getDisplay().addMouseListener( oneTouchExpandTrigger );
+		viewerPanel.getDisplayComponent().addMouseMotionListener( oneTouchExpandTrigger );
+		viewerPanel.getDisplayComponent().addMouseListener( oneTouchExpandTrigger );
 
 		setDividerSize( DEFAULT_DIVIDER_SIZE );
 

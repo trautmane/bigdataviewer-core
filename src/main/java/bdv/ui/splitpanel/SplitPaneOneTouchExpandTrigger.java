@@ -137,6 +137,6 @@ class SplitPaneOneTouchExpandTrigger extends MouseAdapter
 	private void startAnimation( final AnimationType animationType )
 	{
 		animator.startAnimation( animationType );
-		viewer.getDisplay().repaint();
+		viewer.getDisplayComponent().repaint();
 	}
 }

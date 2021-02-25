@@ -138,7 +138,7 @@ public class TransformedRealBoxSelectionDialog extends AbstractTransformedBoxSel
 		} );
 		model.intervalChangedListeners().add( () -> {
 			boxSelectionPanel.updateSliders( model.getInterval() );
-			viewer.getDisplay().repaint();
+			viewer.getDisplayComponent().repaint();
 		} );
 	}
 
