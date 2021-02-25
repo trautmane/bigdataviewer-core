@@ -32,6 +32,7 @@ import bdv.TransformEventHandler;
 import bdv.TransformState;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -787,6 +788,17 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 	 */
 	@Override
 	public InteractiveDisplayCanvas getDisplay()
+	{
+		return display;
+	}
+
+	/**
+	 * Get the AWT {@code Component} of the viewer canvas.
+	 *
+	 * @return the viewer canvas.
+	 */
+	@Override
+	public Component getDisplayComponent()
 	{
 		return display;
 	}

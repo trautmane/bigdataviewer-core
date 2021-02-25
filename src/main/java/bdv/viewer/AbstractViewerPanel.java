@@ -20,14 +20,19 @@ public abstract class AbstractViewerPanel extends JPanel implements RequestRepai
 		super( layout, isDoubleBuffered );
 	}
 
+	public AbstractViewerPanel( LayoutManager layout )
+	{
+		super( layout );
+	}
+
 	public abstract InputTriggerConfig getInputTriggerConfig();
 
 	// TODO: this needs to be more general
-	public abstract InteractiveDisplayCanvas getDisplay();
+	public abstract InteractiveDisplay getDisplay();
 	// --> required: getDisplay().overlays()
 	// --> required: getDisplay().addHandler(...)
 	// --> required: getDisplay().removeHandler(...)
-//	public abstract Component getDisplay();
+	public abstract Component getDisplayComponent();
 	// --> required: getDisplay().repaint()
 
 	/**
@@ -71,21 +76,14 @@ public abstract class AbstractViewerPanel extends JPanel implements RequestRepai
 	 */
 	public enum AlignPlane
 	{
-		XY( "XY", 2, new double[] { 1, 0, 0, 0 } ),
-		ZY( "ZY", 0, new double[] { c, 0, -c, 0 } ),
-		XZ( "XZ", 1, new double[] { c, c, 0, 0 } );
-
-		private final String name;
-
-		public String getName()
-		{
-			return name;
-		}
+		XY( 2, new double[] { 1, 0, 0, 0 } ),
+		ZY( 0, new double[] { c, 0, -c, 0 } ),
+		XZ( 1, new double[] { c, c, 0, 0 } );
 
 		/**
 		 * rotation from the xy-plane aligned coordinate system to this plane.
 		 */
-		final double[] qAlign;
+		public final double[] qAlign; // TODO: should be private/package private
 
 		/**
 		 * Axis index. The plane spanned by the remaining two axes will be
@@ -93,16 +91,17 @@ public abstract class AbstractViewerPanel extends JPanel implements RequestRepai
 		 * "rotation part" of the affine source transform.
 		 * @see Affine3DHelpers#extractApproximateRotationAffine(AffineTransform3D, double[], int)
 		 */
-		final int coerceAffineDimension;
+		public final int coerceAffineDimension; // TODO: should be private/package private
 
-		private AlignPlane( final String name, final int coerceAffineDimension, final double[] qAlign )
+		private AlignPlane( final int coerceAffineDimension, final double[] qAlign )
 		{
-			this.name = name;
 			this.coerceAffineDimension = coerceAffineDimension;
 			this.qAlign = qAlign;
 		}
 	}
 
 	// TODO: implementation should maybe just move here
+	//   but requires mouseCoordinates
+	//   should that also move here?
 	protected abstract void align( final AlignPlane plane );
 }
