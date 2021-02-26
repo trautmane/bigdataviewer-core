@@ -264,7 +264,7 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 		sliderTime = new JSlider( SwingConstants.HORIZONTAL, 0, numTimepoints - 1, 0 );
 		sliderTime.addChangeListener( e -> {
 			if ( !blockSliderTimeEvents )
-				setTimepoint( sliderTime.getValue() );
+				state().setCurrentTimepoint( sliderTime.getValue() );
 		} );
 
 		add( display, BorderLayout.CENTER );
@@ -392,10 +392,9 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 	 * @param gPos
 	 *            is set to the corresponding global coordinates.
 	 */
-	public < P extends RealLocalizable & RealPositionable > void displayToGlobalCoordinates( final double[] gPos )
+	public void displayToGlobalCoordinates( final double[] gPos )
 	{
 		assert gPos.length >= 3;
-
 		state().getViewerTransform().applyInverse( gPos, gPos );
 	}
 
@@ -409,7 +408,6 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 	public < P extends RealLocalizable & RealPositionable > void displayToGlobalCoordinates( final P gPos )
 	{
 		assert gPos.numDimensions() >= 3;
-
 		state().getViewerTransform().applyInverse( gPos, gPos );
 	}
 
@@ -465,6 +463,14 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 	}
 
 	@Override
+	protected void onMouseMoved()
+	{
+		if ( Prefs.showTextOverlay() )
+			// trigger repaint for showing updated mouse coordinates
+			getDisplayComponent().repaint();
+	}
+
+	@Override
 	public void drawOverlays( final Graphics g )
 	{
 		boolean requiresRepaint = false;
@@ -511,6 +517,10 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 		if ( requiresRepaint )
 			display.repaint();
 	}
+
+	@Override
+	public void setCanvasSize( final int width, final int height )
+	{}
 
 	@Override
 	public void viewerStateChanged( final ViewerStateChange change )
@@ -674,7 +684,7 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 	 */
 	public void setNumTimepoints( final int numTimepoints )
 	{
-		state.setNumTimepoints( numTimepoints );
+		state().setNumTimepoints( numTimepoints );
 	}
 
 	/**
@@ -911,13 +921,6 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 	}
 
 	/**
-	 * does nothing.
-	 */
-	@Override
-	public void setCanvasSize( final int width, final int height )
-	{}
-
-	/**
 	 * @deprecated Modify {@link #state()} directly
 	 *
 	 * Returns the {@link VisibilityAndGrouping} that can be used to modify
@@ -933,6 +936,12 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 	public ViewerOptions.Values getOptionValues()
 	{
 		return options;
+	}
+
+	@Override
+	public InputTriggerConfig getInputTriggerConfig()
+	{
+		return options.getInputTriggerConfig();
 	}
 
 	public SourceInfoOverlayRenderer getSourceInfoOverlayRenderer()
@@ -989,13 +998,5 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 				t.setPriority( Thread.NORM_PRIORITY );
 			return t;
 		}
-	}
-
-	// ======== AbstractViewerPanel ======
-
-	@Override
-	public InputTriggerConfig getInputTriggerConfig()
-	{
-		return options.getInputTriggerConfig();
 	}
 }

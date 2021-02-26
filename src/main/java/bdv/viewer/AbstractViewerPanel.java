@@ -31,7 +31,6 @@ public abstract class AbstractViewerPanel extends JPanel implements RequestRepai
 	public AbstractViewerPanel( LayoutManager layout, boolean isDoubleBuffered )
 	{
 		super( layout, isDoubleBuffered );
-
 		mouseCoordinates = new MouseCoordinateListener();
 	}
 
@@ -42,8 +41,18 @@ public abstract class AbstractViewerPanel extends JPanel implements RequestRepai
 
 	public abstract InputTriggerConfig getInputTriggerConfig();
 
+	/**
+	 * Get the viewer canvas.
+	 *
+	 * @return the viewer canvas.
+	 */
 	public abstract InteractiveDisplay getDisplay();
 
+	/**
+	 * Get the AWT {@code Component} of the viewer canvas.
+	 *
+	 * @return the viewer canvas.
+	 */
 	public abstract Component getDisplayComponent();
 
 	/**
@@ -56,22 +65,39 @@ public abstract class AbstractViewerPanel extends JPanel implements RequestRepai
 	 */
 	public abstract void addOverlayAnimator( OverlayAnimator animator );
 
+	/**
+	 * Get the ViewerState. This can be directly used for modifications, e.g.,
+	 * adding/removing sources etc. See {@link SynchronizedViewerState} for
+	 * thread-safety considerations.
+	 */
 	public abstract ViewerState state();
 
+	/**
+	 * Add/remove {@code TransformListener}s to notify about viewer transformation
+	 * changes. Listeners will be notified when a new image has been painted
+	 * with the viewer transform used to render that image.
+	 * <p>
+	 * This happens immediately after that image is painted onto the screen,
+	 * before any overlays are painted.
+	 */
 	public abstract Listeners< TransformListener< AffineTransform3D > > renderTransformListeners();
 
+	/**
+	 * Add/remove {@code TransformListener}s to notify about viewer transformation
+	 * changes. Listeners will be notified <em>before</em> calling
+	 * {@link #requestRepaint()} so they have the chance to interfere.
+	 */
 	public abstract Listeners< TransformListener< AffineTransform3D > > transformListeners();
 
-	// introduced for BookmarksEditor
-	//   --> is it used anywhere else?
 	public abstract void setTransformAnimator( AbstractTransformAnimator animator );
 
-	// introduced for ManualTransformationEditor
-	//   --> is it used anywhere else?
+	/**
+	 * Display the specified message in a text overlay for a short time.
+	 *
+	 * @param msg
+	 *            String to display. Should be just one line of text.
+	 */
 	public abstract void showMessage( String msg );
-
-
-
 
 	private final static double c = Math.cos( Math.PI / 4 );
 
@@ -129,8 +155,8 @@ public abstract class AbstractViewerPanel extends JPanel implements RequestRepai
 		LinAlgHelpers.quaternionInvert( qTmpSource, qTarget );
 
 		final AffineTransform3D transform = state().getViewerTransform();
-		double centerX;
-		double centerY;
+		final double centerX;
+		final double centerY;
 		if ( mouseCoordinates.isMouseInsidePanel() )
 		{
 			centerX = mouseCoordinates.getX();
@@ -165,11 +191,13 @@ public abstract class AbstractViewerPanel extends JPanel implements RequestRepai
 	 * @param p
 	 *            is set to the current mouse coordinates.
 	 */
-	public synchronized void getMouseCoordinates( final Positionable p )
+	public void getMouseCoordinates( final Positionable p )
 	{
 		assert p.numDimensions() == 2;
 		mouseCoordinates.getMouseCoordinates( p );
 	}
+
+	protected void onMouseMoved() {}
 
 	protected class MouseCoordinateListener implements MouseMotionListener, MouseListener
 	{
@@ -197,7 +225,7 @@ public abstract class AbstractViewerPanel extends JPanel implements RequestRepai
 		{
 			x = e.getX();
 			y = e.getY();
-			getDisplayComponent().repaint(); // TODO: only when coordinate overlay is visible!
+			onMouseMoved();
 		}
 
 		public synchronized int getX()
