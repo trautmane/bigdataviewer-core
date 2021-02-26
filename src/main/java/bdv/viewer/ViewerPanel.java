@@ -38,9 +38,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -62,12 +59,10 @@ import bdv.viewer.render.awt.BufferedImageOverlayRenderer;
 import org.jdom2.Element;
 
 import bdv.cache.CacheControl;
-import bdv.util.Affine3DHelpers;
 import bdv.util.Prefs;
 import bdv.viewer.animate.AbstractTransformAnimator;
 import bdv.viewer.animate.MessageOverlayAnimator;
 import bdv.viewer.animate.OverlayAnimator;
-import bdv.viewer.animate.RotationAnimator;
 import bdv.viewer.animate.TextOverlayAnimator;
 import bdv.viewer.animate.TextOverlayAnimator.TextPosition;
 import bdv.viewer.overlay.MultiBoxOverlayRenderer;
@@ -77,13 +72,11 @@ import bdv.viewer.render.MultiResolutionRenderer;
 import bdv.viewer.state.SourceGroup;
 import bdv.viewer.state.ViewerState;
 import bdv.viewer.state.XmlIoViewerState;
-import net.imglib2.Positionable;
 import net.imglib2.RealLocalizable;
 import net.imglib2.RealPoint;
 import net.imglib2.RealPositionable;
 import net.imglib2.realtransform.AffineTransform3D;
 import bdv.viewer.render.PainterThread;
-import net.imglib2.util.LinAlgHelpers;
 import org.scijava.listeners.Listeners;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 
@@ -162,12 +155,6 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 	 * The {@link ExecutorService} used for rendereing.
 	 */
 	protected final ExecutorService renderingExecutorService;
-
-	/**
-	 * Keeps track of the current mouse coordinates, which are used to provide
-	 * the current global position (see {@link #getGlobalMouseCoordinates(RealPositionable)}).
-	 */
-	protected final MouseCoordinateListener mouseCoordinates;
 
 	/**
 	 * Manages visibility and currentness of sources and groups, as well as
@@ -272,7 +259,6 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 				options.getAccumulateProjectorFactory(),
 				cacheControl );
 
-		mouseCoordinates = new MouseCoordinateListener();
 		display.addHandler( mouseCoordinates );
 
 		sliderTime = new JSlider( SwingConstants.HORIZONTAL, 0, numTimepoints - 1, 0 );
@@ -443,32 +429,6 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 		state().getViewerTransform().applyInverse( gPos, lPos );
 	}
 
-	/**
-	 * Set {@code gPos} to the current mouse coordinates transformed into the
-	 * global coordinate system.
-	 *
-	 * @param gPos
-	 *            is set to the current global coordinates.
-	 */
-	public void getGlobalMouseCoordinates( final RealPositionable gPos )
-	{
-		assert gPos.numDimensions() == 3;
-		final RealPoint lPos = new RealPoint( 3 );
-		mouseCoordinates.getMouseCoordinates( lPos );
-		state().getViewerTransform().applyInverse( gPos, lPos );
-	}
-
-	/**
-	 * TODO
-	 * @param p
-	 */
-	@Override
-	public synchronized void getMouseCoordinates( final Positionable p )
-	{
-		assert p.numDimensions() == 2;
-		mouseCoordinates.getMouseCoordinates( p );
-	}
-
 	@Override
 	public void paint()
 	{
@@ -624,46 +584,6 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 			transformListeners.list.forEach( l -> l.transformChanged( transform ) );
 			requestRepaint();
 		}
-	}
-
-	/**
-	 * Align the XY, ZY, or XZ plane of the local coordinate system of the
-	 * currently active source with the viewer coordinate system.
-	 *
-	 * @param plane
-	 *            to which plane to align.
-	 */
-	@Override
-	protected synchronized void align( final AlignPlane plane )
-	{
-		final Source< ? > source = state().getCurrentSource().getSpimSource();
-		final AffineTransform3D sourceTransform = new AffineTransform3D();
-		source.getSourceTransform( state.getCurrentTimepoint(), 0, sourceTransform );
-
-		final double[] qSource = new double[ 4 ];
-		Affine3DHelpers.extractRotationAnisotropic( sourceTransform, qSource );
-
-		final double[] qTmpSource = new double[ 4 ];
-		Affine3DHelpers.extractApproximateRotationAffine( sourceTransform, qSource, plane.coerceAffineDimension );
-		LinAlgHelpers.quaternionMultiply( qSource, plane.qAlign, qTmpSource );
-
-		final double[] qTarget = new double[ 4 ];
-		LinAlgHelpers.quaternionInvert( qTmpSource, qTarget );
-
-		final AffineTransform3D transform = state().getViewerTransform();
-		double centerX;
-		double centerY;
-		if ( mouseCoordinates.isMouseInsidePanel() )
-		{
-			centerX = mouseCoordinates.getX();
-			centerY = mouseCoordinates.getY();
-		}
-		else
-		{
-			centerY = getHeight() / 2.0;
-			centerX = getWidth() / 2.0;
-		}
-		setTransformAnimator( new RotationAnimator( transform, centerX, centerY, qTarget, 300 ) );
 	}
 
 	@Override
@@ -829,6 +749,7 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 	 * @param animator
 	 *            animator to add.
 	 */
+	@Override
 	public void addOverlayAnimator( final OverlayAnimator animator )
 	{
 		overlayAnimators.add( animator );
@@ -978,75 +899,6 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 		}
 	}
 
-	protected class MouseCoordinateListener implements MouseMotionListener, MouseListener
-	{
-		private int x;
-
-		private int y;
-
-		private boolean isInside;
-
-		public synchronized void getMouseCoordinates( final Positionable p )
-		{
-			p.setPosition( x, 0 );
-			p.setPosition( y, 1 );
-		}
-
-		@Override
-		public synchronized void mouseDragged( final MouseEvent e )
-		{
-			x = e.getX();
-			y = e.getY();
-		}
-
-		@Override
-		public synchronized void mouseMoved( final MouseEvent e )
-		{
-			x = e.getX();
-			y = e.getY();
-			display.repaint(); // TODO: only when overlays are visible
-		}
-
-		public synchronized int getX()
-		{
-			return x;
-		}
-
-		public synchronized int getY()
-		{
-			return y;
-		}
-
-		public synchronized boolean isMouseInsidePanel()
-		{
-			return isInside;
-		}
-
-		@Override
-		public synchronized void mouseEntered( final MouseEvent e )
-		{
-			isInside = true;
-		}
-
-		@Override
-		public synchronized void mouseExited( final MouseEvent e )
-		{
-			isInside = false;
-		}
-
-		@Override
-		public void mouseClicked( final MouseEvent e )
-		{}
-
-		@Override
-		public void mousePressed( final MouseEvent e )
-		{}
-
-		@Override
-		public void mouseReleased( final MouseEvent e )
-		{}
-	}
-
 	public synchronized Element stateToXml()
 	{
 		return new XmlIoViewerState().toXml( state );
@@ -1138,15 +990,6 @@ public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer,
 			return t;
 		}
 	}
-
-	@Override
-	public boolean requestFocusInWindow()
-	{
-		return display.requestFocusInWindow();
-	}
-
-
-
 
 	// ======== AbstractViewerPanel ======
 

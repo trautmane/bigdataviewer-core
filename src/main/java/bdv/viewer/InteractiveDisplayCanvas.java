@@ -64,7 +64,7 @@ public class InteractiveDisplayCanvas extends JComponent implements InteractiveD
 	/**
 	 * To draw this component, {@link OverlayRenderer#drawOverlays} is invoked for each renderer.
 	 */
-	final private Listeners.List< OverlayRenderer > overlayRenderers;
+	private final Listeners.List< OverlayRenderer > overlayRenderers;
 
 	/**
 	 * Create a new {@code InteractiveDisplayCanvas}.

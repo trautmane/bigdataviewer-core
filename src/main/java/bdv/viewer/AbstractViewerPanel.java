@@ -3,11 +3,18 @@ package bdv.viewer;
 import bdv.util.Affine3DHelpers;
 import bdv.viewer.animate.AbstractTransformAnimator;
 import bdv.viewer.animate.OverlayAnimator;
+import bdv.viewer.animate.RotationAnimator;
 import java.awt.Component;
 import java.awt.LayoutManager;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import javax.swing.JPanel;
 import net.imglib2.Positionable;
+import net.imglib2.RealPoint;
+import net.imglib2.RealPositionable;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.util.LinAlgHelpers;
 import org.scijava.listeners.Listeners;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 
@@ -15,25 +22,29 @@ import org.scijava.ui.behaviour.io.InputTriggerConfig;
 // TODO: actually move functionality here?
 public abstract class AbstractViewerPanel extends JPanel implements RequestRepaint
 {
+	/**
+	 * Keeps track of the current mouse coordinates, which are used to provide
+	 * the current global position (see {@link #getGlobalMouseCoordinates(RealPositionable)}).
+	 */
+	protected final MouseCoordinateListener mouseCoordinates;
+
 	public AbstractViewerPanel( LayoutManager layout, boolean isDoubleBuffered )
 	{
 		super( layout, isDoubleBuffered );
+
+		mouseCoordinates = new MouseCoordinateListener();
 	}
 
 	public AbstractViewerPanel( LayoutManager layout )
 	{
-		super( layout );
+		this( layout, true );
 	}
 
 	public abstract InputTriggerConfig getInputTriggerConfig();
 
-	// TODO: this needs to be more general
 	public abstract InteractiveDisplay getDisplay();
-	// --> required: getDisplay().overlays()
-	// --> required: getDisplay().addHandler(...)
-	// --> required: getDisplay().removeHandler(...)
+
 	public abstract Component getDisplayComponent();
-	// --> required: getDisplay().repaint()
 
 	/**
 	 * Add a new {@link OverlayAnimator} to the list of animators. The animation
@@ -50,12 +61,6 @@ public abstract class AbstractViewerPanel extends JPanel implements RequestRepai
 	public abstract Listeners< TransformListener< AffineTransform3D > > renderTransformListeners();
 
 	public abstract Listeners< TransformListener< AffineTransform3D > > transformListeners();
-
-
-
-	// introduced for BookmarksEditor
-	//   --> is it used anywhere else?
-	public abstract void getMouseCoordinates( Positionable p );
 
 	// introduced for BookmarksEditor
 	//   --> is it used anywhere else?
@@ -100,8 +105,144 @@ public abstract class AbstractViewerPanel extends JPanel implements RequestRepai
 		}
 	}
 
-	// TODO: implementation should maybe just move here
-	//   but requires mouseCoordinates
-	//   should that also move here?
-	protected abstract void align( final AlignPlane plane );
+	/**
+	 * Align the XY, ZY, or XZ plane of the local coordinate system of the
+	 * currently active source with the viewer coordinate system.
+	 *
+	 * @param plane
+	 *            to which plane to align.
+	 */
+	protected synchronized void align( final AlignPlane plane )
+	{
+		final Source< ? > source = state().getCurrentSource().getSpimSource();
+		final AffineTransform3D sourceTransform = new AffineTransform3D();
+		source.getSourceTransform( state().getCurrentTimepoint(), 0, sourceTransform );
+
+		final double[] qSource = new double[ 4 ];
+		Affine3DHelpers.extractRotationAnisotropic( sourceTransform, qSource );
+
+		final double[] qTmpSource = new double[ 4 ];
+		Affine3DHelpers.extractApproximateRotationAffine( sourceTransform, qSource, plane.coerceAffineDimension );
+		LinAlgHelpers.quaternionMultiply( qSource, plane.qAlign, qTmpSource );
+
+		final double[] qTarget = new double[ 4 ];
+		LinAlgHelpers.quaternionInvert( qTmpSource, qTarget );
+
+		final AffineTransform3D transform = state().getViewerTransform();
+		double centerX;
+		double centerY;
+		if ( mouseCoordinates.isMouseInsidePanel() )
+		{
+			centerX = mouseCoordinates.getX();
+			centerY = mouseCoordinates.getY();
+		}
+		else
+		{
+			centerY = getHeight() / 2.0;
+			centerX = getWidth() / 2.0;
+		}
+		setTransformAnimator( new RotationAnimator( transform, centerX, centerY, qTarget, 300 ) );
+	}
+
+	/**
+	 * Set {@code gPos} to the current mouse coordinates transformed into the
+	 * global coordinate system.
+	 *
+	 * @param gPos
+	 *            is set to the current global coordinates.
+	 */
+	public void getGlobalMouseCoordinates( final RealPositionable gPos )
+	{
+		assert gPos.numDimensions() == 3;
+		final RealPoint lPos = new RealPoint( 3 );
+		mouseCoordinates.getMouseCoordinates( lPos );
+		state().getViewerTransform().applyInverse( gPos, lPos );
+	}
+
+	/**
+	 * Set {@code p} to the current mouse coordinates wrt to the display component.
+	 *
+	 * @param p
+	 *            is set to the current mouse coordinates.
+	 */
+	public synchronized void getMouseCoordinates( final Positionable p )
+	{
+		assert p.numDimensions() == 2;
+		mouseCoordinates.getMouseCoordinates( p );
+	}
+
+	protected class MouseCoordinateListener implements MouseMotionListener, MouseListener
+	{
+		private int x;
+
+		private int y;
+
+		private boolean isInside;
+
+		public synchronized void getMouseCoordinates( final Positionable p )
+		{
+			p.setPosition( x, 0 );
+			p.setPosition( y, 1 );
+		}
+
+		@Override
+		public synchronized void mouseDragged( final MouseEvent e )
+		{
+			x = e.getX();
+			y = e.getY();
+		}
+
+		@Override
+		public synchronized void mouseMoved( final MouseEvent e )
+		{
+			x = e.getX();
+			y = e.getY();
+			getDisplayComponent().repaint(); // TODO: only when coordinate overlay is visible!
+		}
+
+		public synchronized int getX()
+		{
+			return x;
+		}
+
+		public synchronized int getY()
+		{
+			return y;
+		}
+
+		public synchronized boolean isMouseInsidePanel()
+		{
+			return isInside;
+		}
+
+		@Override
+		public synchronized void mouseEntered( final MouseEvent e )
+		{
+			isInside = true;
+		}
+
+		@Override
+		public synchronized void mouseExited( final MouseEvent e )
+		{
+			isInside = false;
+		}
+
+		@Override
+		public void mouseClicked( final MouseEvent e )
+		{}
+
+		@Override
+		public void mousePressed( final MouseEvent e )
+		{}
+
+		@Override
+		public void mouseReleased( final MouseEvent e )
+		{}
+	}
+
+	@Override
+	public boolean requestFocusInWindow()
+	{
+		return getDisplayComponent().requestFocusInWindow();
+	}
 }
