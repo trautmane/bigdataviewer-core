@@ -138,7 +138,7 @@ public abstract class AbstractViewerPanel extends JPanel implements RequestRepai
 	 * @param plane
 	 *            to which plane to align.
 	 */
-	protected synchronized void align( final AlignPlane plane )
+	protected void align( final AlignPlane plane )
 	{
 		final Source< ? > source = state().getCurrentSource().getSpimSource();
 		final AffineTransform3D sourceTransform = new AffineTransform3D();
@@ -157,15 +157,18 @@ public abstract class AbstractViewerPanel extends JPanel implements RequestRepai
 		final AffineTransform3D transform = state().getViewerTransform();
 		final double centerX;
 		final double centerY;
-		if ( mouseCoordinates.isMouseInsidePanel() )
+		synchronized ( mouseCoordinates )
 		{
-			centerX = mouseCoordinates.getX();
-			centerY = mouseCoordinates.getY();
-		}
-		else
-		{
-			centerY = getHeight() / 2.0;
-			centerX = getWidth() / 2.0;
+			if ( mouseCoordinates.isMouseInsidePanel() )
+			{
+				centerX = mouseCoordinates.getX();
+				centerY = mouseCoordinates.getY();
+			}
+			else
+			{
+				centerY = getDisplayComponent().getHeight() / 2.0;
+				centerX = getDisplayComponent().getWidth() / 2.0;
+			}
 		}
 		setTransformAnimator( new RotationAnimator( transform, centerX, centerY, qTarget, 300 ) );
 	}

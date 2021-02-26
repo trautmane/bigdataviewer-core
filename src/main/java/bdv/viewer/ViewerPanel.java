@@ -90,7 +90,7 @@ import org.scijava.ui.behaviour.io.InputTriggerConfig;
  *
  * @author Tobias Pietzsch
  */
-public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer, PainterThread.Paintable, ViewerStateChangeListener, RequestRepaint
+public class ViewerPanel extends AbstractViewerPanel implements OverlayRenderer, PainterThread.Paintable, ViewerStateChangeListener
 {
 	private static final long serialVersionUID = 1L;
 
